@@ -60,7 +60,7 @@ public static class HydroBlazorExtensions
 
             if (!httpContext.Request.HasFormContentType)
             {
-                return Results.BadRequest("Hydro form doesn't contain form which is required");
+                return Results.BadRequest("Request must have form content type");
             }
 
             var hydroData = await httpContext.Request.ReadFormAsync();
@@ -109,17 +109,17 @@ public static class HydroBlazorExtensions
             var htmlRoot = await htmlRenderer.Dispatcher.InvokeAsync(async () => 
             {
                 var parameters = ParameterView.FromDictionary(blazorParams);
-                var output = await htmlRenderer.RenderComponentAsync(componentType, parameters);
-                return output.ToHtmlString();
+                var renderedComponent = await htmlRenderer.RenderComponentAsync(componentType, parameters);
+                return renderedComponent.ToHtmlString();
             });
             
-            var finalHtml = await WrapHtml(htmlRoot, componentId, componentName, componentType, hydroContext.ComponentInstance, scopedProvider);
+            var finalHtml = WrapHtml(htmlRoot, componentId, componentName, componentType, hydroContext.ComponentInstance, scopedProvider);
 
             return Results.Content(finalHtml, MediaTypeNames.Text.Html);
         });
     }
 
-    private static async Task<string> WrapHtml(string html, string componentId, string componentName, Type componentType, IComponent? componentInstance, IServiceProvider serviceProvider)
+    private static string WrapHtml(string html, string componentId, string componentName, Type componentType, IComponent? componentInstance, IServiceProvider serviceProvider)
     {
         var htmlDocument = new HtmlDocument();
         htmlDocument.LoadHtml(html);
@@ -148,7 +148,7 @@ public static class HydroBlazorExtensions
         scriptNode.AppendChild(htmlDocument.CreateTextNode(compressed));
         rootElement.AppendChild(scriptNode);
 
-        return await Task.FromResult(rootElement.OuterHtml);
+        return rootElement.OuterHtml;
     }
 }
 #endif

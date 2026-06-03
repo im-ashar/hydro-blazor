@@ -70,7 +70,11 @@ public abstract class HydroBlazorComponent : ComponentBase
                                     converted = Convert.ChangeType(val, prop.PropertyType);
                                 }
                             }
-                            catch
+                            catch (InvalidCastException)
+                            {
+                                // ignored
+                            }
+                            catch (FormatException)
                             {
                                 // ignored
                             }
@@ -110,7 +114,8 @@ public abstract class HydroBlazorComponent : ComponentBase
                 for (int i = 0; i < methodParams.Length; i++)
                 {
                     var param = methodParams[i];
-                    if (HydroActionParameters != null && HydroActionParameters.TryGetValue(param.Name, out var val))
+                    var key = HydroActionParameters?.Keys.FirstOrDefault(k => string.Equals(k, param.Name, StringComparison.OrdinalIgnoreCase));
+                    if (HydroActionParameters != null && key != null && HydroActionParameters.TryGetValue(key, out var val))
                     {
                         if (val is Newtonsoft.Json.Linq.JToken jToken)
                         {
